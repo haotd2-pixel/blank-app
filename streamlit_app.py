@@ -122,5 +122,3 @@ if uploaded_file:
 
 else:
     st.info("Please upload the TGSIM CSV file to begin.")
-
-
