@@ -11,7 +11,7 @@ This Streamlit app visualizes and analyzes Third-Generation Simulation (TGSIM) v
 
 2. Launch the app:
   
-  streamlit run app.py
+  streamlit run streamlit_app.py
 
 
 3. Upload your TGSIM CSV file when prompted.
