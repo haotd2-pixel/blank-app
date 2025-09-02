@@ -7,7 +7,6 @@ import plotly.express as px
 # --- Data Preprocessing ---
 @st.cache_data
 def load_data(uploaded_file):
-    # Efficient reading; only needed columns
     dtypes = {
         'id': np.int32,
         'time': np.float32,
@@ -26,18 +25,18 @@ def load_data(uploaded_file):
 
 # --- Streamlit UI ---
 st.title("TGSIM I-90/I-94 Trajectory Data Visualization & Analysis")
-st.warning("Note: Streamlit Community Cloud allows file uploads up to 200MB. If your file is larger, split it before uploading.")
+st.warning("Note: File upload limit is 200MB per file. Please split your data if needed.")
 
 uploaded_file = st.file_uploader("Upload TGSIM Trajectory CSV", type=["csv"])
 if uploaded_file:
     df = load_data(uploaded_file)
-    
+
     # Lane selection menu
     lanes = sorted(df['lane_kf'].unique())
     selected_lane = st.selectbox("Select Lane", lanes)
     filtered_df = df[df['lane_kf'] == selected_lane]
 
-    # Vehicle selection (optional, scalable for large data)
+    # Vehicle selection
     vehicle_ids = filtered_df['id'].unique()
     selected_vehicles = st.multiselect("Vehicles to display", vehicle_ids, default=vehicle_ids[:10])
 
@@ -46,9 +45,10 @@ if uploaded_file:
     # Region / zoom selection
     min_time, max_time = plot_df['time'].min(), plot_df['time'].max()
     time_range = st.slider("Time Range", float(min_time), float(max_time), (float(min_time), float(max_time)))
-    plot_df = plot_df[(plot_df['time'] >= time_range) & (plot_df['time'] <= time_range[1])].copy()  # Correct line!
+    # *** Critical fix: use time_range and time_range[1], NOT time_range as a tuple! ***
+    plot_df = plot_df[(plot_df['time'] >= time_range) & (plot_df['time'] <= time_range[1])].copy()
 
-    # --- Trajectory Visualization (Plotly for interactive zoom) ---
+    # --- Trajectory Visualization ---
     fig = px.line(
         plot_df,
         x="xloc_kf", y="yloc_kf", color="id",
@@ -60,7 +60,7 @@ if uploaded_file:
     # --- Traffic Flow Analysis ---
     st.header("Traffic Flow Metrics")
 
-    # Time and Space Headways
+    # Headways
     st.subheader("Headways")
     plot_headways = plot_df.sort_values(['lane_kf', 'time', 'xloc_kf'])
     headways_time = plot_headways.groupby('lane_kf').apply(
@@ -88,7 +88,7 @@ if uploaded_file:
     fig_spd = px.histogram(plot_df, x="speed_kf", nbins=40, title="Distribution of Individual Vehicle Speeds")
     st.plotly_chart(fig_spd)
 
-    # Space-Mean Speed (by segments, e.g. per 10s window)
+    # Space-Mean Speed (segment)
     st.subheader("Space-Mean Speeds")
     plot_df['segment'] = pd.cut(plot_df['time'], bins=np.arange(min_time, max_time+10, 10))
     sms = plot_df.groupby('segment')['speed_kf'].mean()
@@ -103,7 +103,6 @@ if uploaded_file:
 
     # Density (vehicles per distance)
     st.subheader("Density")
-    # Example: per 100m segment along xloc_kf
     plot_df['distance_bin'] = pd.cut(plot_df['xloc_kf'], bins=np.arange(plot_df['xloc_kf'].min(), plot_df['xloc_kf'].max()+100, 100))
     density = plot_df.groupby('distance_bin')['id'].nunique()
     fig_density = px.bar(x=density.index.astype(str), y=density.values, labels={'x':'Position Bin', 'y':'Density (veh/100m)'}, title="Density Distribution")
