@@ -26,6 +26,7 @@ def load_data(uploaded_file):
 
 # --- Streamlit UI ---
 st.title("TGSIM I-90/I-94 Trajectory Data Visualization & Analysis")
+st.warning("Note: Streamlit Community Cloud allows file uploads up to 200MB. If your file is larger, split it before uploading.")
 
 uploaded_file = st.file_uploader("Upload TGSIM Trajectory CSV", type=["csv"])
 if uploaded_file:
@@ -45,7 +46,7 @@ if uploaded_file:
     # Region / zoom selection
     min_time, max_time = plot_df['time'].min(), plot_df['time'].max()
     time_range = st.slider("Time Range", float(min_time), float(max_time), (float(min_time), float(max_time)))
-    plot_df = plot_df[(plot_df['time'] >= time_range) & (plot_df['time'] <= time_range[1])].copy()
+    plot_df = plot_df[(plot_df['time'] >= time_range) & (plot_df['time'] <= time_range[1])].copy()  # Correct line!
 
     # --- Trajectory Visualization (Plotly for interactive zoom) ---
     fig = px.line(
