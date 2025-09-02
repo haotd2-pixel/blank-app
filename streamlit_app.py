@@ -46,7 +46,9 @@ if uploaded_file:
     min_time, max_time = plot_df['time'].min(), plot_df['time'].max()
     time_range = st.slider("Time Range", float(min_time), float(max_time), (float(min_time), float(max_time)))
     # *** Critical fix: use time_range and time_range[1], NOT time_range as a tuple! ***
-    plot_df = plot_df[(plot_df['time'] >= time_range) & (plot_df['time'] <= time_range[1])].copy()
+    plot_df = plot_df[
+        (plot_df['time'] >= time_range) & (plot_df['time'] <= time_range[1])].copy()
+
 
     # --- Trajectory Visualization ---
     fig = px.line(
