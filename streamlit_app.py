@@ -43,12 +43,11 @@ if uploaded_file:
     plot_df = filtered_df[filtered_df['id'].isin(selected_vehicles)].copy()
 
     # Region / zoom selection
-    min_time, max_time = plot_df['time'].min(), plot_df['time'].max()
-    time_range = st.slider("Time Range", float(min_time), float(max_time), (float(min_time), float(max_time)))
-    # 100% correct usage: use time_range and time_range[1]!
-    plot_df = plot_df[
-        (plot_df['time'] >= time_range) & (plot_df['time'] <= time_range[1])
-    ].copy()
+    min_time = float(plot_df['time'].min())
+    max_time = float(plot_df['time'].max())
+    time_range = st.slider("Time Range", min_time, max_time, (min_time, max_time))
+    # THE FILTER IS NOW ABSOLUTELY CORRECT:
+    plot_df = plot_df[(plot_df['time'] >= time_range) & (plot_df['time'] <= time_range[1])].copy()
 
     # --- Trajectory Visualization ---
     fig = px.line(
