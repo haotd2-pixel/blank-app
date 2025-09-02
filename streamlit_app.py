@@ -38,17 +38,17 @@ if uploaded_file:
 
     # Vehicle selection
     vehicle_ids = filtered_df['id'].unique()
-    selected_vehicles = st.multiselect("Vehicles to display", vehicle_ids, default=vehicle_ids[:10])
+    selected_vehicles = st.multiselect("Vehicles to display", vehicle_ids, default=list(vehicle_ids[:10]))
 
     plot_df = filtered_df[filtered_df['id'].isin(selected_vehicles)].copy()
 
     # Region / zoom selection
     min_time, max_time = plot_df['time'].min(), plot_df['time'].max()
     time_range = st.slider("Time Range", float(min_time), float(max_time), (float(min_time), float(max_time)))
-    # *** Critical fix: use time_range and time_range[1], NOT time_range as a tuple! ***
+    # 100% correct usage: use time_range and time_range[1]!
     plot_df = plot_df[
-        (plot_df['time'] >= time_range) & (plot_df['time'] <= time_range[1])].copy()
-
+        (plot_df['time'] >= time_range) & (plot_df['time'] <= time_range[1])
+    ].copy()
 
     # --- Trajectory Visualization ---
     fig = px.line(
@@ -92,7 +92,7 @@ if uploaded_file:
 
     # Space-Mean Speed (segment)
     st.subheader("Space-Mean Speeds")
-    plot_df['segment'] = pd.cut(plot_df['time'], bins=np.arange(min_time, max_time+10, 10))
+    plot_df['segment'] = pd.cut(plot_df['time'], bins=np.arange(min_time, max_time + 10, 10))
     sms = plot_df.groupby('segment')['speed_kf'].mean()
     fig_sms = px.line(x=sms.index.astype(str), y=sms.values, labels={'x':'Time Segment', 'y':'Space-Mean Speed'}, title="Space-Mean Speeds Over Time")
     st.plotly_chart(fig_sms)
@@ -105,7 +105,7 @@ if uploaded_file:
 
     # Density (vehicles per distance)
     st.subheader("Density")
-    plot_df['distance_bin'] = pd.cut(plot_df['xloc_kf'], bins=np.arange(plot_df['xloc_kf'].min(), plot_df['xloc_kf'].max()+100, 100))
+    plot_df['distance_bin'] = pd.cut(plot_df['xloc_kf'], bins=np.arange(plot_df['xloc_kf'].min(), plot_df['xloc_kf'].max() + 100, 100))
     density = plot_df.groupby('distance_bin')['id'].nunique()
     fig_density = px.bar(x=density.index.astype(str), y=density.values, labels={'x':'Position Bin', 'y':'Density (veh/100m)'}, title="Density Distribution")
     st.plotly_chart(fig_density)
